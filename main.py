@@ -9,7 +9,7 @@ import sys, os, time
 import json
 
 # ゲーム用モジュール
-from config import GameManager, Animation, Camera
+from config import GameManager, Animation, Camera, SceneLoader
 import UISystem as UI
 
 # アプリケーションコンフィグ
@@ -52,15 +52,18 @@ def main():
 
     pg.init()
     screen = pg.display.set_mode((config["WINDOW"].getint("WIDTH"), config["WINDOW"].getint("HEIGHT")))
+    pg.display.set_icon(pg.image.load(os.path.join(base_path, "./Images/icon/THENGINE37_icon.png")))
     pg.display.set_caption(config["WINDOW"].get("CAPTION"))
 
     gm = GameManager()
     gm.base_path = base_path
     gm.screen = screen
 
-    gm.scenes = []
-    # gm.scene = 1
-    # gm.LoadScene()
+    sc = SceneLoader()
+    sc.register()
+    scene = sc.load_scene("SampleScene")
+    scene.OnLoad()
+    scene.Start()
     
     fps = config["WINDOW"].getint("FPS")
 
@@ -71,8 +74,7 @@ def main():
 
         screen.fill(gm.fillColor)
 
-        # gm.sceneObj.update()
-        # gm.sceneObj.draw()
+        scene.update()
         
         pg.display.flip()
         

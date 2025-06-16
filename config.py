@@ -30,13 +30,26 @@ class GameManager:
         self.sceneObj = self.scenes[self.scene]
         self.sceneObj.Load()
 
-class Transform:
-    def __init__(self, pos_x=0, pos_y=0, rotate=0, sclX=1, sclY=1):
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.rotate = rotate
-        self.sclX = sclX
-        self.sclY = sclY
+class BaseCPN:
+    def __init__(self):
+        self.active = True
+
+    def OnLoad(self):
+        pass
+
+    def Start(self):
+        pass    
+
+    def Update(self):
+        pass
+
+class Transform(BaseCPN):
+    def __init__(self):
+        self.pos_x: float = 0
+        self.pos_y: float = 0
+        self.rotate: float = 0
+        self.sclX: float = 0
+        self.sclY: float = 0
 
     def LinearInterpolation(a: np.ndarray[float, float], b: np.ndarray[float, float], t: float):
         """
@@ -111,16 +124,6 @@ class Transform:
 
         return i
 
-class BaseCPN:
-    def __init__(self):
-        self.active = True
-
-    def OnLoad(self):
-        pass
-
-    def Update(self):
-        pass
-
 class Animation(BaseCPN):
     def __init__(self, srcs: list, scale: tuple, animation_interval: float):
         super().__init__()
@@ -167,11 +170,26 @@ class Camera(BaseCPN):
         self.x = x
         self.y = y
 
+class Sprite(BaseCPN):
+    def __init__(self, img, x, y, w, h):
+        self.img = pg.image.load(os.path.join(GameManager().base_path, img))
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+    def Start(self):
+        pass
+
+    def Update(self):
+        GameManager().screen.blit(self.img, (self.x, self.y), (self.w, self.h))
+
 class GameObject:
     def __init__(self) -> None:
         self.name: str = ""
         self.tag: str = ""
         self.layer: int = 0
+        self.id: int = 0
         self.components: list = []
 
     def OnLoad(self) -> None:
@@ -181,26 +199,27 @@ class GameObject:
         for c in self.components: c.Start()
 
     def Update(self) -> None:
-        for c in self.components: c.Start()
+        for c in self.components: c.Update()
 
 class Scene:
     def __init__(self):
         self.gameObjects = []
 
     def update(self):
-        pass
+        for obj in self.gameObjects: 
+            obj.Update()
 
     def OnLoad(self):
-        pass
+        for obj in self.gameObjects:
+            obj.OnLoad()
 
     def Start(self):
-        pass
+        for obj in self.gameObjects: 
+            obj.Start()
 
     def draw(self):
-        pass
-    
-    def Load(self):
-        pass
+        for obj in self.gameObjects: 
+            obj.draw()
 
 class SceneLoader:
     instance = None
@@ -222,6 +241,7 @@ class SceneLoader:
             obj.name = key
             obj.tag = value["tag"]
             obj.layer = value["layer"]
+            obj.id = value["id"]
             
             for v in value["components"].values():
                 cmp = self.object_hook(v["_type"], v["value"])
@@ -231,13 +251,22 @@ class SceneLoader:
         scene = Scene()
         scene.gameObjects = objects
 
+        print(f"Now scene is {name}")
+
         return scene
 
     def object_hook(self, cls: str, values: dict) -> any:
-        if cls == "Rect":
-            return pg.rect.Rect(values["x"], values["y"], values["width"], values["height"])
+        if cls == "Transform":
+            t = Transform()
+            t.pos_x = values["x"]
+            t.pos_y = values["y"]
+            t.sclX = values["width"]
+            t.sclY = values["height"]
+            return Transform()
         elif cls == "Camera":
             return Camera(values["x"], values["y"])
+        elif cls == "Sprite":
+            return Sprite("./Images/Squere.png", values["x"], values["y"], values["w"], values["h"])
 
     def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")
