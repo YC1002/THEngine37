@@ -42,16 +42,6 @@ class MapTile(pg.sprite.Sprite):
         # if self.rect.x > 100 and self.rect.x < self.screen_center[0]*2-100 and self.rect.y > 100 and self.rect.y < self.screen_center[1]*2-100:
         #     surface.blit(self.image, self.rect)
 
-class BaseScene:
-    def update(self):
-        pass
-
-    def draw(self):
-        pass
-    
-    def Load(self):
-        pass
-
 """ ゲームループ """
 def main():
     config = configparser.ConfigParser()

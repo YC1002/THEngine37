@@ -11,7 +11,7 @@ class GameManager:
     deltaTime: float = 0.0
     base_path = None
     screen = None
-    scene = 2
+    scene = 0
     scenes = []
     sceneObj = None
     score = 0
@@ -111,9 +111,20 @@ class Transform:
 
         return i
 
-        
-class Animation:
+class BaseCPN:
+    def __init__(self):
+        self.active = True
+
+    def OnLoad(self):
+        pass
+
+    def Update(self):
+        pass
+
+class Animation(BaseCPN):
     def __init__(self, srcs: list, scale: tuple, animation_interval: float):
+        super().__init__()
+
         self.srcs = srcs
         self.imgs = []
         self.scale = scale
@@ -150,10 +161,46 @@ class Animation:
     def get_image(self):
         return self.imgs[self.index]
     
-class Camera:
+class Camera(BaseCPN):
     def __init__(self, x, y):
+        super().__init__()
         self.x = x
         self.y = y
+
+class GameObject:
+    def __init__(self) -> None:
+        self.name: str = ""
+        self.tag: str = ""
+        self.layer: int = 0
+        self.components: list = []
+
+    def OnLoad(self) -> None:
+        for c in self.components: c.OnLoad()
+
+    def Start(self) -> None:
+        for c in self.components: c.Start()
+
+    def Update(self) -> None:
+        for c in self.components: c.Start()
+
+class Scene:
+    def __init__(self):
+        self.gameObjects = []
+
+    def update(self):
+        pass
+
+    def OnLoad(self):
+        pass
+
+    def Start(self):
+        pass
+
+    def draw(self):
+        pass
+    
+    def Load(self):
+        pass
 
 class SceneLoader:
     instance = None
@@ -166,13 +213,33 @@ class SceneLoader:
             print("Create new instance, SceneLoader")
         return cls.instance
 
-    def load_scene(self, name):
-        pass
+    def load_scene(self, name) -> Scene:
+        f = open(os.path.join(GameManager().base_path, f"./Scenes/{self.Scenes[name]}"), "r")
+        sc = json.load(f)
+        objects = []
+        for key, value in sc.items():
+            obj = GameObject()
+            obj.name = key
+            obj.tag = value["tag"]
+            obj.layer = value["layer"]
+            
+            for v in value["components"].values():
+                cmp = self.object_hook(v["_type"], v["value"])
+                obj.components.append(cmp)
+            objects.append(obj)
+        
+        scene = Scene()
+        scene.gameObjects = objects
 
-    def object_hook(self, o):
-        pass
+        return scene
 
-    def register(self):
+    def object_hook(self, cls: str, values: dict) -> any:
+        if cls == "Rect":
+            return pg.rect.Rect(values["x"], values["y"], values["width"], values["height"])
+        elif cls == "Camera":
+            return Camera(values["x"], values["y"])
+
+    def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")
         files_file = [
             f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))
@@ -188,4 +255,4 @@ if __name__ == "__main__":
     base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     GameManager().base_path = base_path
     SceneLoader().register()
-    print(SceneLoader().Scenes)
+    s = SceneLoader().load_scene("SampleScene")
