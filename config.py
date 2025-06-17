@@ -32,10 +32,11 @@ class GameManager:
 
 class BaseCPN:
     def __init__(self):
-        self.active = True
+        self.active: bool = True
+        self.gameobject: GameObject = None
 
-    def OnLoad(self):
-        pass
+    def OnLoad(self, GameObject):
+        self.gameobject = GameObject
 
     def Start(self):
         pass    
@@ -177,23 +178,26 @@ class Sprite(BaseCPN):
         self.y = y
         self.w = w
         self.h = h
+        self.cam = None
 
     def Start(self):
-        pass
+        self.cam = self.gameobject.scene.GetObjectRequest(id=0).GetComponent(Camera)
 
     def Update(self):
-        GameManager().screen.blit(self.img, (self.x, self.y), (self.w, self.h))
+        GameManager().screen.blit(self.img, pg.rect.Rect(self.x, self.y, self.w, self.h))
 
 class GameObject:
     def __init__(self) -> None:
+        self.scene: Scene = None
         self.name: str = ""
         self.tag: str = ""
         self.layer: int = 0
         self.id: int = 0
         self.components: list = []
 
-    def OnLoad(self) -> None:
-        for c in self.components: c.OnLoad()
+    def OnLoad(self, scene) -> None:
+        self.scene = scene
+        for c in self.components: c.OnLoad(self)
 
     def Start(self) -> None:
         for c in self.components: c.Start()
@@ -201,17 +205,32 @@ class GameObject:
     def Update(self) -> None:
         for c in self.components: c.Update()
 
+    def GetComponent(self, type_: type) -> any:
+        for c in self.components:
+            if type(c) == type_:
+                return c
+        raise ValueError(f"There is not Component {type_} in Object {self.id}")
+
 class Scene:
     def __init__(self):
         self.gameObjects = []
 
-    def update(self):
+    def update(self) -> None:
         for obj in self.gameObjects: 
             obj.Update()
 
+    def GetObjectRequest(self, id) -> GameObject:
+        """
+        シーンオブジェクトにオブジェクト情報のGetリクエストをする
+        """
+        for obj in self.gameObjects:
+            if obj.id == id:
+                return obj
+        raise ValueError(f"There is not Object {id} in scene {self} !")
+
     def OnLoad(self):
         for obj in self.gameObjects:
-            obj.OnLoad()
+            obj.OnLoad(self)
 
     def Start(self):
         for obj in self.gameObjects: 

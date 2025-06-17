@@ -16,7 +16,7 @@
     "Squere": {
         "tag": "",
         "layer": 0,
-        "id": 0,
+        "id": 1,
         "components": {
             "Sprite": {
                 "_type": "Sprite",
