@@ -11,10 +11,6 @@ class GameManager:
     deltaTime: float = 0.0
     base_path = None
     screen = None
-    scene = 0
-    scenes = []
-    sceneObj = None
-    score = 0
     fillColor = (0, 0, 0)
 
     def __new__(cls):
@@ -22,14 +18,6 @@ class GameManager:
             cls.instance = super(GameManager, cls).__new__(cls)
             print("Create new instance, GameManager")
         return cls.instance
-
-    def MoveScene(self, n):
-        self.scene = n
-
-    def LoadScene(self):        # シーンオブジェクトを読み込む
-        self.sceneObj = self.scenes[self.scene]
-        self.sceneObj.Load()
-
 class BaseCPN:
     def __init__(self):
         self.active: bool = True
@@ -178,13 +166,13 @@ class Sprite(BaseCPN):
         self.y = y
         self.w = w
         self.h = h
-        self.cam = None
+        self.cam: Camera = None
 
     def Start(self):
-        self.cam = self.gameobject.scene.GetObjectRequest(id=0).GetComponent(Camera)
+        self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Camera)
 
     def Update(self):
-        GameManager().screen.blit(self.img, pg.rect.Rect(self.x, self.y, self.w, self.h))
+        GameManager().screen.blit(self.img, pg.rect.Rect(self.cam.x, self.y, self.w, self.h))
 
 class GameObject:
     def __init__(self) -> None:
@@ -303,4 +291,4 @@ if __name__ == "__main__":
     base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     GameManager().base_path = base_path
     SceneLoader().register()
-    s = SceneLoader().load_scene("SampleScene")
+    GameManager().scene = SceneLoader().load_scene("SampleScene")

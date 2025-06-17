@@ -62,8 +62,9 @@ def main():
     sc = SceneLoader()
     sc.register()
     scene = sc.load_scene("SampleScene")
-    scene.OnLoad()
-    scene.Start()
+    gm.scene = scene
+    gm.scene.OnLoad()
+    gm.scene.Start()
     
     fps = config["WINDOW"].getint("FPS")
 
@@ -74,7 +75,7 @@ def main():
 
         screen.fill(gm.fillColor)
 
-        scene.update()
+        gm.scene.update()
         
         pg.display.flip()
         
