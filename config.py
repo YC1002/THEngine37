@@ -12,12 +12,14 @@ class GameManager:
     base_path = None
     screen = None
     fillColor = (0, 0, 0)
+    scene = None
 
     def __new__(cls):
         if cls.instance is None:
             cls.instance = super(GameManager, cls).__new__(cls)
             print("Create new instance, GameManager")
         return cls.instance
+
 class BaseCPN:
     def __init__(self):
         self.active: bool = True
@@ -34,11 +36,11 @@ class BaseCPN:
 
 class Transform(BaseCPN):
     def __init__(self):
-        self.pos_x: float = 0
-        self.pos_y: float = 0
+        self.x: float = 0
+        self.y: float = 0
         self.rotate: float = 0
-        self.sclX: float = 0
-        self.sclY: float = 0
+        self.w: float = 0
+        self.h: float = 0
 
     def LinearInterpolation(a: np.ndarray[float, float], b: np.ndarray[float, float], t: float):
         """
@@ -154,25 +156,30 @@ class Animation(BaseCPN):
         return self.imgs[self.index]
     
 class Camera(BaseCPN):
-    def __init__(self, x, y):
+    def __init__(self):
         super().__init__()
-        self.x = x
-        self.y = y
-
-class Sprite(BaseCPN):
-    def __init__(self, img, x, y, w, h):
-        self.img = pg.image.load(os.path.join(GameManager().base_path, img))
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.cam: Camera = None
+        self.transform: Transform = None
 
     def Start(self):
-        self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Camera)
+        self.transform = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
+
+class Sprite(BaseCPN):
+    def __init__(self, img, id):
+        self.img = pg.image.load(os.path.join(GameManager().base_path, img))
+        self.transform: Transform = None
+        self.cam: Transform = None
+        self.gm = GameManager()
+        self.screen_center = (self.gm.screen.get_width()/2, self.gm.screen.get_height()/2)
+        self.id = id
+
+    def Start(self):
+        self.transform = GameManager().scene.GetObjectRequest(id=self.id).GetComponent(Transform)
+        self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
 
     def Update(self):
-        GameManager().screen.blit(self.img, pg.rect.Rect(self.cam.x, self.y, self.w, self.h))
+        rx = (self.transform.x - self.transform.w/2 - self.cam.x) + self.screen_center[0]
+        ry = (self.transform.y - self.transform.h/2 - self.cam.y) + self.screen_center[1]
+        GameManager().screen.blit(self.img, pg.rect.Rect(rx, ry, self.transform.w, self.transform.h))
 
 class GameObject:
     def __init__(self) -> None:
@@ -251,7 +258,7 @@ class SceneLoader:
             obj.id = value["id"]
             
             for v in value["components"].values():
-                cmp = self.object_hook(v["_type"], v["value"])
+                cmp = self.object_hook(v["_type"], v["value"], obj.id)
                 obj.components.append(cmp)
             objects.append(obj)
         
@@ -262,7 +269,7 @@ class SceneLoader:
 
         return scene
 
-    def object_hook(self, cls: str, values: dict) -> any:
+    def object_hook(self, cls: str, values: dict, id: int) -> any:
         if cls == "Transform":
             t = Transform()
             t.pos_x = values["x"]
@@ -271,9 +278,9 @@ class SceneLoader:
             t.sclY = values["height"]
             return Transform()
         elif cls == "Camera":
-            return Camera(values["x"], values["y"])
+            return Camera()
         elif cls == "Sprite":
-            return Sprite("./Images/Squere.png", values["x"], values["y"], values["w"], values["h"])
+            return Sprite("./Images/Squere.png", id)
 
     def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")

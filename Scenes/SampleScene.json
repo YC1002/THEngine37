@@ -4,6 +4,15 @@
         "layer": 0,
         "id": 0,
         "components": {
+            "Transform": {
+                "_type": "Transform",
+                "value": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 1,
+                    "height": 1
+                }
+            },
             "Camera": {
                 "_type": "Camera",
                 "value": {
@@ -18,14 +27,19 @@
         "layer": 0,
         "id": 1,
         "components": {
+            "Transform": {
+                "_type": "Transform",
+                "value": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 64,
+                    "height": 64
+                }
+            },
             "Sprite": {
                 "_type": "Sprite",
                 "value": {
-                    "src": "./Images/Squere.png",
-                    "x": 0,
-                    "y": 0,
-                    "w": 64,
-                    "h": 64
+                    "src": "./Images/Squere.png"
                 }
             }
         }
