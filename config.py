@@ -1,3 +1,5 @@
+import pymunk
+import pymunk.pygame_util
 import pygame as pg
 import numpy as np
 import math
@@ -13,6 +15,9 @@ class GameManager:
     screen = None
     fillColor = (0, 0, 0)
     scene = None
+
+    gravity = (0, -980)
+    space: pymunk.Space = None
 
     def __new__(cls):
         if cls.instance is None:
@@ -36,6 +41,7 @@ class BaseCPN:
 
 class Transform(BaseCPN):
     def __init__(self):
+        super().__init__()
         self.x: float = 0
         self.y: float = 0
         self.rotate: float = 0
@@ -161,10 +167,20 @@ class Camera(BaseCPN):
         self.transform: Transform = None
 
     def Start(self):
-        self.transform = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
+        self.transform = self.gameobject.GetComponent(Transform)
+
+class BoxPhysics(BaseCPN):
+    def __init__(self, id):
+        super().__init__()
+        self.transform: Transform = None
+        self.id = id
+
+    def Start(self):
+        self.transform = self.gameobject.GetComponent(Transform)
 
 class Sprite(BaseCPN):
     def __init__(self, img, id):
+        super().__init__()
         self.img = pg.image.load(os.path.join(GameManager().base_path, img))
         self.transform: Transform = None
         self.cam: Transform = None
@@ -173,7 +189,7 @@ class Sprite(BaseCPN):
         self.id = id
 
     def Start(self):
-        self.transform = GameManager().scene.GetObjectRequest(id=self.id).GetComponent(Transform)
+        self.transform = self.gameobject.GetComponent(Transform)
         self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
 
     def Update(self):
@@ -195,10 +211,14 @@ class GameObject:
         for c in self.components: c.OnLoad(self)
 
     def Start(self) -> None:
-        for c in self.components: c.Start()
+        for c in self.components:
+            if c.active:
+                c.Start()
 
     def Update(self) -> None:
-        for c in self.components: c.Update()
+        for c in self.components:
+            if c.active:
+                c.Update()
 
     def GetComponent(self, type_: type) -> any:
         for c in self.components:
@@ -281,6 +301,8 @@ class SceneLoader:
             return Camera()
         elif cls == "Sprite":
             return Sprite("./Images/Squere.png", id)
+        elif cls == "BoxPhysics":
+            return BoxPhysics()
 
     def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")

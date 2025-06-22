@@ -1,3 +1,5 @@
+import pymunk
+import pymunk.pygame_util
 import pygame as pg
 from pygame.locals import *
 import numpy as np
@@ -58,6 +60,10 @@ def main():
     gm = GameManager()
     gm.base_path = base_path
     gm.screen = screen
+
+    space = pymunk.Space()
+    space.gravity = gm.gravity
+    gm.space = space
 
     sc = SceneLoader()
     sc.register()
