@@ -48,6 +48,7 @@
                 "_type": "BoxPhysics",
                 "value": {
                     "static": false,
+                    "sensor": false,
                     "mass": 1,
                     "MoI": 10,
                     "e": 0,
@@ -86,6 +87,7 @@
                 "_type": "BoxPhysics",
                 "value": {
                     "static": true,
+                    "sensor": false,
                     "mass": 1,
                     "MoI": 10,
                     "e": 0,

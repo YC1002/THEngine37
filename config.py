@@ -170,11 +170,12 @@ class Camera(BaseCPN):
         self.transform = self.gameobject.GetComponent(Transform)
 
 class BoxPhysics(BaseCPN):
-    def __init__(self, static, mass, moi, e, w, h):
+    def __init__(self, static, sensor, mass, moi, e, w, h):
         super().__init__()
         self.transform: Transform = None
         self.body: pymunk.Body = None
         self.static: bool = static
+        self.sensor: bool = sensor
         self.mass: float = mass
         self.moi: float = moi
         self.elasticity: float = e
@@ -188,9 +189,11 @@ class BoxPhysics(BaseCPN):
         else:
             self.body = pymunk.Body(self.mass, float("inf"))
         
-        self.body.position = (self.transform.x, self.transform.y)
+        self.body.position = (self.transform.x, self.transform.y)       # 重心の位置
         self.body_shape = pymunk.Poly.create_box(self.body, self.rect)
         self.body_shape.elasticity = self.elasticity
+        self.body_shape.collision_type = self.gameobject.id
+        self.sensor = self.sensor
         GameManager().space.add(self.body, self.body_shape)
 
     def Update(self):
@@ -334,7 +337,7 @@ class SceneLoader:
         scene = Scene()
         scene.gameObjects = objects
 
-        print(f"Now scene is {name}")
+        print(f"This scene is {name}")
 
         return scene
 
@@ -352,7 +355,7 @@ class SceneLoader:
         elif cls == "Sprite":
             return Sprite("./Images/Squere.png")
         elif cls == "BoxPhysics":
-            return BoxPhysics(values["static"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
+            return BoxPhysics(values["static"], values["sensor"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
         elif cls == "Tester":
             return Tester()
 
