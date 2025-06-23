@@ -82,6 +82,7 @@ def main():
         screen.fill(gm.fillColor)
 
         gm.scene.update()
+        gm.space.step(1 / fps)
         
         pg.display.flip()
         
@@ -96,7 +97,6 @@ def main():
 
         et = time.perf_counter() #pg.time.get_ticks()
         delta = et - st
-        gm.space.step(delta)
         # print(1 / (delta / 1000))
         gm.deltaTime = delta
 

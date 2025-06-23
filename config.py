@@ -189,12 +189,9 @@ class BoxPhysics(BaseCPN):
             self.body = pymunk.Body(self.mass, float("inf"))
         
         self.body.position = (self.transform.x, self.transform.y)
-        print(self.gameobject.name)
-        print(self.transform.x, self.transform.y)
         self.body_shape = pymunk.Poly.create_box(self.body, self.rect)
         self.body_shape.elasticity = self.elasticity
         GameManager().space.add(self.body, self.body_shape)
-        print(self.transform.x, self.transform.y)
 
     def Update(self):
         self.pos = self.body.position
@@ -204,7 +201,8 @@ class BoxPhysics(BaseCPN):
 class Sprite(BaseCPN):
     def __init__(self, img):
         super().__init__()
-        self.img = pg.image.load(os.path.join(GameManager().base_path, img))
+        self.img = pg.image.load(os.path.join(GameManager().base_path, img)).convert_alpha()
+        self.rimg = None
         self.transform: Transform = None
         self.cam: Transform = None
         self.gm = GameManager()
@@ -215,9 +213,15 @@ class Sprite(BaseCPN):
         self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
 
     def Update(self):
+        self.rimg = pg.transform.rotate(pg.transform.scale(self.img, (self.transform.w, self.transform.h)), self.transform.rotate)
+        #new_x = self.transform.x - imW/2
+        #new_y = self.transform.y - imH/2
+        #self.transform.x = new_x
+        #self.transform.y = new_y
+        
         rx = (self.transform.x - self.transform.w/2 - self.cam.x) + self.screen_center[0]
         ry = (self.transform.y - self.transform.h/2 - self.cam.y) + self.screen_center[1]
-        GameManager().screen.blit(self.img, pg.rect.Rect(rx, ry, self.transform.w, self.transform.h))
+        GameManager().screen.blit(self.rimg, pg.rect.Rect(rx, ry, self.transform.w, self.transform.h))
 
 class GameObject:
     def __init__(self) -> None:
@@ -247,6 +251,29 @@ class GameObject:
             if type(c) == type_:
                 return c
         raise ValueError(f"There is not Component {type_} in Object {self.id}")
+
+class Tester(BaseCPN):
+    def __init__(self):
+        super().__init__()
+        self.transform: BoxPhysics = None
+        self.t: Transform = None
+        
+    def Start(self):
+        self.transform = self.gameobject.GetComponent(BoxPhysics)
+        self.t = self.gameobject.GetComponent(Transform)
+        
+    def Update(self):
+        key = pg.key.get_pressed()
+        
+        move_vec = [0, 0]
+        
+        if key[pg.K_RIGHT]:
+            move_vec[0] = 640
+        elif key[pg.K_LEFT]:
+            move_vec[0] = -640
+            
+        self.transform.body.velocity = (move_vec[0], self.transform.body.velocity[1])
+        #self.t.rotate += 10
 
 class Scene:
     def __init__(self):
@@ -318,6 +345,7 @@ class SceneLoader:
             t.y = values["y"]
             t.w = values["width"]
             t.h = values["height"]
+            t.rotate = values["rotate"]
             return t
         elif cls == "Camera":
             return Camera()
@@ -325,6 +353,8 @@ class SceneLoader:
             return Sprite("./Images/Squere.png")
         elif cls == "BoxPhysics":
             return BoxPhysics(values["static"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
+        elif cls == "Tester":
+            return Tester()
 
     def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")
