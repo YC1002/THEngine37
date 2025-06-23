@@ -16,7 +16,7 @@ class GameManager:
     fillColor = (0, 0, 0)
     scene = None
 
-    gravity = (0, -980)
+    gravity = (0, 980)
     space: pymunk.Space = None
 
     def __new__(cls):
@@ -170,23 +170,45 @@ class Camera(BaseCPN):
         self.transform = self.gameobject.GetComponent(Transform)
 
 class BoxPhysics(BaseCPN):
-    def __init__(self, id):
+    def __init__(self, static, mass, moi, e, w, h):
         super().__init__()
         self.transform: Transform = None
-        self.id = id
+        self.body: pymunk.Body = None
+        self.static: bool = static
+        self.mass: float = mass
+        self.moi: float = moi
+        self.elasticity: float = e
+        self.rect = (w, h)
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
+        
+        if self.static:
+            self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        else:
+            self.body = pymunk.Body(self.mass, float("inf"))
+        
+        self.body.position = (self.transform.x, self.transform.y)
+        print(self.gameobject.name)
+        print(self.transform.x, self.transform.y)
+        self.body_shape = pymunk.Poly.create_box(self.body, self.rect)
+        self.body_shape.elasticity = self.elasticity
+        GameManager().space.add(self.body, self.body_shape)
+        print(self.transform.x, self.transform.y)
+
+    def Update(self):
+        self.pos = self.body.position
+        self.transform.x = self.pos[0]
+        self.transform.y = self.pos[1]
 
 class Sprite(BaseCPN):
-    def __init__(self, img, id):
+    def __init__(self, img):
         super().__init__()
         self.img = pg.image.load(os.path.join(GameManager().base_path, img))
         self.transform: Transform = None
         self.cam: Transform = None
         self.gm = GameManager()
         self.screen_center = (self.gm.screen.get_width()/2, self.gm.screen.get_height()/2)
-        self.id = id
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
@@ -278,7 +300,7 @@ class SceneLoader:
             obj.id = value["id"]
             
             for v in value["components"].values():
-                cmp = self.object_hook(v["_type"], v["value"], obj.id)
+                cmp = self.object_hook(v["_type"], v["value"])
                 obj.components.append(cmp)
             objects.append(obj)
         
@@ -289,20 +311,20 @@ class SceneLoader:
 
         return scene
 
-    def object_hook(self, cls: str, values: dict, id: int) -> any:
+    def object_hook(self, cls: str, values: dict) -> any:
         if cls == "Transform":
             t = Transform()
-            t.pos_x = values["x"]
-            t.pos_y = values["y"]
-            t.sclX = values["width"]
-            t.sclY = values["height"]
-            return Transform()
+            t.x = values["x"]
+            t.y = values["y"]
+            t.w = values["width"]
+            t.h = values["height"]
+            return t
         elif cls == "Camera":
             return Camera()
         elif cls == "Sprite":
-            return Sprite("./Images/Squere.png", id)
+            return Sprite("./Images/Squere.png")
         elif cls == "BoxPhysics":
-            return BoxPhysics()
+            return BoxPhysics(values["static"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
 
     def register(self) -> None:
         dir_path = os.path.join(GameManager().base_path, "./Scenes")

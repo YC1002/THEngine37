@@ -41,6 +41,17 @@
                 "value": {
                     "src": "./Images/Squere.png"
                 }
+            },
+            "BoxPhysics": {
+                "_type": "BoxPhysics",
+                "value": {
+                    "static": false,
+                    "mass": 1,
+                    "MoI": 10,
+                    "e": 0,
+                    "w": 64,
+                    "h": 64
+                }
             }
         }
     }
