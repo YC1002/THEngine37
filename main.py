@@ -11,7 +11,8 @@ import sys, os, time
 import json
 
 # ゲーム用モジュール
-from config import GameManager, Animation, Camera, SceneLoader
+from config import GameManager, Camera
+from SceneLoader import SceneLoader
 import UISystem as UI
 
 # アプリケーションコンフィグ

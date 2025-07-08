@@ -1,5 +1,4 @@
 import pymunk
-import pymunk.pygame_util
 import pygame as pg
 import numpy as np
 import math
@@ -257,6 +256,11 @@ class GameObject:
 
 class Tester(BaseCPN):
     def __init__(self):
+        """
+        need:
+            BoxPhysics,
+            Sprite
+        """
         super().__init__()
         self.transform: BoxPhysics = None
         self.t: Transform = None
@@ -274,6 +278,9 @@ class Tester(BaseCPN):
             move_vec[0] = 640
         elif key[pg.K_LEFT]:
             move_vec[0] = -640
+        
+        if key[pg.K_UP]:
+            self.transform.body.apply_impulse_at_local_point((0, -100), (0, 0))
             
         self.transform.body.velocity = (move_vec[0], self.transform.body.velocity[1])
         #self.t.rotate += 10
@@ -306,73 +313,3 @@ class Scene:
     def draw(self):
         for obj in self.gameObjects: 
             obj.draw()
-
-class SceneLoader:
-    instance = None
-
-    Scenes = {}
-
-    def __new__(cls):
-        if cls.instance is None:
-            cls.instance = super(SceneLoader, cls).__new__(cls)
-            print("Create new instance, SceneLoader")
-        return cls.instance
-
-    def load_scene(self, name) -> Scene:
-        f = open(os.path.join(GameManager().base_path, f"./Scenes/{self.Scenes[name]}"), "r")
-        sc = json.load(f)
-        objects = []
-        for key, value in sc.items():
-            obj = GameObject()
-            obj.name = key
-            obj.tag = value["tag"]
-            obj.layer = value["layer"]
-            obj.id = value["id"]
-            
-            for v in value["components"].values():
-                cmp = self.object_hook(v["_type"], v["value"])
-                obj.components.append(cmp)
-            objects.append(obj)
-        
-        scene = Scene()
-        scene.gameObjects = objects
-
-        print(f"This scene is {name}")
-
-        return scene
-
-    def object_hook(self, cls: str, values: dict) -> any:
-        if cls == "Transform":
-            t = Transform()
-            t.x = values["x"]
-            t.y = values["y"]
-            t.w = values["width"]
-            t.h = values["height"]
-            t.rotate = values["rotate"]
-            return t
-        elif cls == "Camera":
-            return Camera()
-        elif cls == "Sprite":
-            return Sprite("./Images/Squere.png")
-        elif cls == "BoxPhysics":
-            return BoxPhysics(values["static"], values["sensor"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
-        elif cls == "Tester":
-            return Tester()
-
-    def register(self) -> None:
-        dir_path = os.path.join(GameManager().base_path, "./Scenes")
-        files_file = [
-            f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))
-        ]
-        files_name = [
-            f.replace(".json", "") for f in files_file 
-        ]
-
-        self.Scenes.update(zip(files_name, files_file))
-
-if __name__ == "__main__":
-    dir_path = os.path.join(__file__)
-    base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-    GameManager().base_path = base_path
-    SceneLoader().register()
-    GameManager().scene = SceneLoader().load_scene("SampleScene")
