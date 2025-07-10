@@ -1,5 +1,3 @@
-import pymunk
-import pymunk.pygame_util
 import pygame as pg
 from pygame.locals import *
 import numpy as np
@@ -62,10 +60,6 @@ def main():
     gm.base_path = base_path
     gm.screen = screen
 
-    space = pymunk.Space()
-    space.gravity = gm.gravity
-    gm.space = space
-
     sc = SceneLoader()
     sc.register()
     scene = sc.load_scene("SampleScene")
@@ -83,7 +77,6 @@ def main():
         screen.fill(gm.fillColor)
 
         gm.scene.update()
-        gm.space.step(1 / fps)
         
         pg.display.flip()
         

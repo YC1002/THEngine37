@@ -44,56 +44,9 @@
                     "src": "./Images/Squere.png"
                 }
             },
-            "BoxPhysics": {
-                "_type": "BoxPhysics",
-                "value": {
-                    "static": false,
-                    "sensor": false,
-                    "mass": 1,
-                    "MoI": 10,
-                    "e": 0,
-                    "w": 64,
-                    "h": 64
-                }
-            },
             "Tester": {
                 "_type": "Tester",
                 "value": {}
-            }
-        }
-    },
-    "Floor": {
-        "tag": "",
-        "layer": 0,
-        "id": 2,
-        "components": {
-            "Transform": {
-                "_type": "Transform",
-                "value": {
-                    "x": 0,
-                    "y": 296,
-                    "width": 1280,
-                    "height": 64,
-                    "rotate": 0
-                }
-            },
-            "Sprite": {
-                "_type": "Sprite",
-                "value": {
-                    "src": "./Images/Squere.png"
-                }
-            },
-            "BoxPhysics": {
-                "_type": "BoxPhysics",
-                "value": {
-                    "static": true,
-                    "sensor": false,
-                    "mass": 1,
-                    "MoI": 10,
-                    "e": 0,
-                    "w": 1280,
-                    "h": 64
-                }
             }
         }
     }

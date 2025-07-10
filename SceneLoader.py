@@ -20,6 +20,7 @@ class SceneLoader:
         f = open(os.path.join(GameManager().base_path, f"./Scenes/{self.Scenes[name]}"), "r")
         sc = json.load(f)
         objects = []
+        hbs = []
         for key, value in sc.items():
             obj = GameObject()
             obj.name = key
@@ -30,10 +31,12 @@ class SceneLoader:
             for v in value["components"].values():
                 cmp = self.object_hook(v["_type"], v["value"])
                 obj.components.append(cmp)
+                if type(cmp) == HitBox: hbs.append(obj)
             objects.append(obj)
         
         scene = Scene()
         scene.gameObjects = objects
+        scene.hitboxes = hbs
 
         print(f"This scene is {name}")
 
@@ -53,8 +56,8 @@ class SceneLoader:
             return Camera()
         elif cls == "Sprite":
             return Sprite("./Images/Squere.png")
-        elif cls == "BoxPhysics":
-            return BoxPhysics(values["static"], values["sensor"], values["mass"], values["MoI"], values["e"], values["w"], values["h"])
+        elif cls == "HitBox":
+            return HitBox(values["w"], values["h"])
         elif cls == "Tester":
             return Tester()
 

@@ -1,4 +1,3 @@
-import pymunk
 import pygame as pg
 import numpy as np
 import math
@@ -14,9 +13,6 @@ class GameManager:
     screen = None
     fillColor = (0, 0, 0)
     scene = None
-
-    gravity = (0, 980)
-    space: pymunk.Space = None
 
     def __new__(cls):
         if cls.instance is None:
@@ -168,37 +164,26 @@ class Camera(BaseCPN):
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
 
-class BoxPhysics(BaseCPN):
-    def __init__(self, static, sensor, mass, moi, e, w, h):
+class HitBox(BaseCPN):
+    def __init__(self, w, h):
         super().__init__()
         self.transform: Transform = None
-        self.body: pymunk.Body = None
-        self.static: bool = static
-        self.sensor: bool = sensor
-        self.mass: float = mass
-        self.moi: float = moi
-        self.elasticity: float = e
-        self.rect = (w, h)
+        self.rect: pg.Rect = None
+        self.w = w
+        self.h = h
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
-        
-        if self.static:
-            self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        else:
-            self.body = pymunk.Body(self.mass, float("inf"))
-        
-        self.body.position = (self.transform.x, self.transform.y)       # 重心の位置
-        self.body_shape = pymunk.Poly.create_box(self.body, self.rect)
-        self.body_shape.elasticity = self.elasticity
-        self.body_shape.collision_type = self.gameobject.id
-        self.sensor = self.sensor
-        GameManager().space.add(self.body, self.body_shape)
+        self.rect = pg.Rect(self.transform.x, self.transform.y, self.w, self.h)
 
     def Update(self):
-        self.pos = self.body.position
-        self.transform.x = self.pos[0]
-        self.transform.y = self.pos[1]
+        self.rect = pg.Rect(self.transform.x, self.transform.y, self.w, self.h)
+        
+    def isCollide(self, box) -> bool:
+        """
+        与えられたbox(HitBox型)と衝突しているかを判定する
+        """
+        return self.rect.colliderect(box.rect)
 
 class Sprite(BaseCPN):
     def __init__(self, img):
@@ -262,32 +247,29 @@ class Tester(BaseCPN):
             Sprite
         """
         super().__init__()
-        self.transform: BoxPhysics = None
-        self.t: Transform = None
+        self.transform: Transform = None
         
     def Start(self):
-        self.transform = self.gameobject.GetComponent(BoxPhysics)
-        self.t = self.gameobject.GetComponent(Transform)
+        self.transform = self.gameobject.GetComponent(Transform)
         
     def Update(self):
         key = pg.key.get_pressed()
         
-        move_vec = [0, 0]
-        
         if key[pg.K_RIGHT]:
-            move_vec[0] = 640
-        elif key[pg.K_LEFT]:
-            move_vec[0] = -640
-        
+            self.transform.x += 300*GameManager().deltaTime
+        if key[pg.K_LEFT]:
+            self.transform.x -= 300*GameManager().deltaTime
         if key[pg.K_UP]:
-            self.transform.body.apply_impulse_at_local_point((0, -100), (0, 0))
+            self.transform.y -= 300*GameManager().deltaTime
+        if key[pg.K_DOWN]:
+            self.transform.y += 300*GameManager().deltaTime
             
-        self.transform.body.velocity = (move_vec[0], self.transform.body.velocity[1])
         #self.t.rotate += 10
 
 class Scene:
     def __init__(self):
         self.gameObjects = []
+        self.hitboxes = []
 
     def update(self) -> None:
         for obj in self.gameObjects: 
@@ -301,6 +283,15 @@ class Scene:
             if obj.id == id:
                 return obj
         raise ValueError(f"There is not Object {id} in scene {self} !")
+    
+    def GetObjectsWithTag(self, name) -> list[GameObject]:
+        """
+        nameに該当するすべてのシーンオブジェクトを取得する
+        """
+        l = []
+        for obj in self.gameObjects:
+            if obj.tag == name: l.append(l)
+        return l
 
     def OnLoad(self):
         for obj in self.gameObjects:
