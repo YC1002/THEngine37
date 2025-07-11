@@ -17,8 +17,6 @@
             "Camera": {
                 "_type": "Camera",
                 "value": {
-                    "x": 0,
-                    "y": 0
                 }
             }
         }
