@@ -62,10 +62,7 @@ def main():
 
     sc = SceneLoader()
     sc.register()
-    scene = sc.load_scene("SampleScene")
-    gm.scene = scene
-    gm.scene.OnLoad()
-    gm.scene.Start()
+    sc.load_scene(config["WINDOW"].get("SCENE"))
     
     fps = config["WINDOW"].getint("FPS")
 

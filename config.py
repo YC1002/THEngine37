@@ -160,6 +160,7 @@ class Camera(BaseCPN):
     def __init__(self):
         super().__init__()
         self.transform: Transform = None
+        self.gm = GameManager()
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
@@ -194,10 +195,12 @@ class Sprite(BaseCPN):
         self.cam: Transform = None
         self.gm = GameManager()
         self.screen_center = (self.gm.screen.get_width()/2, self.gm.screen.get_height()/2)
+        self.aspect = 1
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
         self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
+        self.aspect = self.gm.screen.get_width() / self.gm.screen.get_height()
 
     def Update(self):
         self.rimg = pg.transform.rotate(pg.transform.scale(self.img, (self.transform.w, self.transform.h)), self.transform.rotate)
@@ -206,9 +209,9 @@ class Sprite(BaseCPN):
         #self.transform.x = new_x
         #self.transform.y = new_y
         
-        rx = (self.transform.x - self.transform.w/2 - self.cam.x) + self.screen_center[0]
-        ry = (self.transform.y - self.transform.h/2 - self.cam.y) + self.screen_center[1]
-        GameManager().screen.blit(self.rimg, pg.rect.Rect(rx, ry, self.transform.w, self.transform.h))
+        rx = (self.transform.x*self.aspect - self.transform.w/2 - self.cam.x) + self.screen_center[0]
+        ry = (self.transform.y*self.aspect - self.transform.h/2 - self.cam.y) + self.screen_center[1]
+        GameManager().screen.blit(self.rimg, pg.rect.Rect(rx, ry, self.transform.w*self.aspect, self.transform.h*self.aspect))
 
 class GameObject:
     def __init__(self) -> None:
@@ -248,6 +251,7 @@ class Tester(BaseCPN):
         """
         super().__init__()
         self.transform: Transform = None
+        self.speed: float = 120
         
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
@@ -256,13 +260,13 @@ class Tester(BaseCPN):
         key = pg.key.get_pressed()
         
         if key[pg.K_RIGHT]:
-            self.transform.x += 300*GameManager().deltaTime
+            self.transform.x += self.speed*GameManager().deltaTime
         if key[pg.K_LEFT]:
-            self.transform.x -= 300*GameManager().deltaTime
+            self.transform.x -= self.speed*GameManager().deltaTime
         if key[pg.K_UP]:
-            self.transform.y -= 300*GameManager().deltaTime
+            self.transform.y -= self.speed*GameManager().deltaTime
         if key[pg.K_DOWN]:
-            self.transform.y += 300*GameManager().deltaTime
+            self.transform.y += self.speed*GameManager().deltaTime
             
         #self.t.rotate += 10
 

@@ -39,7 +39,7 @@
             "Text": {
                 "_type": "Text",
                 "value": {
-                    "text": "This is the UISampleScene",
+                    "text": "This is the SampleScene",
                     "size": 30,
                     "r": 255,
                     "g": 255,
@@ -110,8 +110,8 @@
                 "value": {
                     "x": 0,
                     "y": 0,
-                    "width": 64,
-                    "height": 64,
+                    "width": 50,
+                    "height": 50,
                     "rotate": 0
                 }
             },
@@ -119,6 +119,13 @@
                 "_type": "Sprite",
                 "value": {
                     "src": "./Images/Squere.png"
+                }
+            },
+            "HitBox": {
+                "_type": "HitBox",
+                "value": {
+                    "w": 50,
+                    "h": 50
                 }
             },
             "Tester": {

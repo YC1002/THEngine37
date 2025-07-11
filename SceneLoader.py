@@ -6,6 +6,7 @@ from UISystem import *
 
 class SceneLoader:
     instance = None
+    gm = GameManager()
 
     Scenes = {}
 
@@ -40,8 +41,9 @@ class SceneLoader:
         scene.hitboxes = hbs
 
         print(f"This scene is {name}")
-
-        return scene
+        self.gm.scene = scene
+        self.gm.scene.OnLoad()
+        self.gm.scene.Start()
 
     # resitering components <--- edit here when you add your custom components !
     def object_hook(self, cls: str, values: dict) -> any:
