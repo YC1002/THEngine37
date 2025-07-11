@@ -9,8 +9,8 @@ class GameManager:
     instance = None
 
     deltaTime: float = 0.0
-    base_path = None
-    screen = None
+    base_path: str = None
+    screen: pg.surface = None
     fillColor = (0, 0, 0)
     scene = None
 

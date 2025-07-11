@@ -2,6 +2,7 @@ import json
 import os, sys
 
 from config import *
+from UISystem import *
 
 class SceneLoader:
     instance = None
@@ -60,6 +61,12 @@ class SceneLoader:
             return HitBox(values["w"], values["h"])
         elif cls == "Tester":
             return Tester()
+        elif cls == "Image":
+            return UIImage(values["src"], values["r"], values["g"], values["b"], values["a"])
+        elif cls == "Slider":
+            return Slider(values["min"], values["max"], values["value"])
+        elif cls == "Text":
+            return UIText(values["text"], values["size"], values["r"], values["g"], values["b"])
 
     # registering the scene
     def register(self) -> None:

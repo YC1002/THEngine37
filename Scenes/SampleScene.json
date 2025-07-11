@@ -23,7 +23,86 @@
             }
         }
     },
-    "Squere": {
+    "Text": {
+        "tag": "",
+        "layer": 0,
+        "id": 1,
+        "components": {
+            "Transform": {
+                "_type": "Transform",
+                "value": {
+                    "x": 640,
+                    "y": 360,
+                    "width": 1,
+                    "height": 1,
+                    "rotate": 0
+                }
+            },
+            "Text": {
+                "_type": "Text",
+                "value": {
+                    "text": "This is the UISampleScene",
+                    "size": 30,
+                    "r": 255,
+                    "g": 255,
+                    "b": 255
+                }
+            }
+        }
+    },
+    "Slider": {
+        "tag": "",
+        "layer": 0,
+        "id": 1,
+        "components": {
+            "Transform": {
+                "_type": "Transform",
+                "value": {
+                    "x": 390,
+                    "y": 400,
+                    "width": 500,
+                    "height": 50,
+                    "rotate": 0
+                }
+            },
+            "Slider": {
+                "_type": "Slider",
+                "value": {
+                    "min": 0,
+                    "max": 100,
+                    "value": 80
+                }
+            }
+        }
+    },
+    "Image": {
+        "tag": "",
+        "layer": 0,
+        "id": 1,
+        "components": {
+            "Transform": {
+                "_type": "Transform",
+                "value": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 100,
+                    "height": 100,
+                    "rotate": 0
+                }
+            },
+            "Image": {
+                "_type": "Image",
+                "value": {
+                    "src": "./Images/icon/THENGINE37_icon.png",
+                    "r": 0,
+                    "g": 0,
+                    "b": 0,
+                    "a": 255
+                }
+            }
+        }
+    },
+    "Player": {
         "tag": "",
         "layer": 0,
         "id": 1,

@@ -1,93 +1,107 @@
 import pygame as pg
 from pygame.locals import *
 import numpy as np
-import math
+import os
 
-from collections import deque
-from config import GameManager, Transform
+from config import GameManager, BaseCPN, Transform
 
 
-class Slider(pg.sprite.Sprite):
-    def __init__(self, min, max, value, rect: pg.rect.Rect):
-        pg.sprite.Sprite.__init__(self)
+class Slider(BaseCPN):
+    def __init__(self, min, max, value):
+        """_summary_
+        これは現段階で試験的な機能です
+        Slider:
+            min (float): 最大値
+            max (float): 最小値
+            value (float): 現在の値
+        """
+        super().__init__()
         
         self.fill_color = (255, 255, 255)
-        self.background_color = (0, 0, 0)
+        self.background_color = (10, 10, 10)
 
         self.min = min
         self.max = max
         self.value = value
-        self.rect = rect
+        self.transform: Transform = None
 
         self.raito = self.value / self.max
+        
+        self.gm: GameManager = GameManager()
 
-    def update(self):
+    def Start(self):
+        self.transform = self.gameobject.GetComponent(Transform)
+
+    def Update(self):
         self.raito = self.value / self.max
 
         if self.raito < 0.0:
             self.raito = 0.0
+        self.gm.screen.fill(self.background_color, (self.transform.x+self.transform.w*self.raito, self.transform.y, self.transform.w-self.transform.w*self.raito, self.transform.h))
+        self.gm.screen.fill(self.fill_color, (self.transform.x, self.transform.y, self.transform.w*self.raito, self.transform.h))
 
-    def draw(self, surface: pg.surface.Surface):
-        surface.fill(self.background_color, (self.rect.x+self.rect.w*self.raito, self.rect.y, self.rect.w-self.rect.w*self.raito, self.rect.height))
-        surface.fill(self.fill_color, (self.rect.x, self.rect.y, self.rect.w*self.raito, self.rect.height))
+class UIImage(BaseCPN):
+    def __init__(self, image, r, g, b, a):
+        super().__init__()
+        
+        self.src = image
+        self.NoneImage = (image == "")
+        self.img: pg.surface.Surface = None
+        self.transform: Transform = None
 
-class UIImage(pg.sprite.Sprite):
-    def __init__(self, image: pg.surface.Surface, rect: pg.rect.Rect, angle=0, aplha: int = 0):
-        pg.sprite.Sprite.__init__(self)
-        self.NoneImage = (image == None)
-        self.img: pg.surface.Surface = image
-        self.rect: pg.rect.Rect = rect
-        self.angle = angle
-
-        self.aplha: int = aplha
-        self.color = (255, 255, 255)
-
-        if self.img is not None:
-            self.img = pg.transform.scale(self.img, (self.rect.width, self.rect.height))
+        self.color = (r, g, b, a)
+        
+        self.gm = GameManager()
+            
+    def Start(self):
+        self.transform = self.gameobject.GetComponent(Transform)
+        
+        if not self.NoneImage:
+            self.img = pg.image.load(os.path.join(GameManager().base_path, self.src)).convert_alpha()
+            self.img = pg.transform.scale(self.img, (self.transform.w, self.transform.h))
             # self.pixel = pg.PixelArray(self.img)
         else:
-            self.img = pg.Surface((self.rect.width, self.rect.height)).convert_alpha()
+            self.img = pg.Surface((self.transform.w, self.transform.h)).convert_alpha()
 
-    def update(self):
-        pass
-
-    def draw(self, surface: pg.surface.Surface):
+    def Update(self):
         if self.NoneImage:
             self.img.fill(self.color)
-            self.img_ = pg.transform.rotate(self.img, self.angle)
-            self.img_.set_alpha(self.aplha)
+            self.img_ = pg.transform.rotate(self.img, self.transform.rotate)
+            self.img_.set_alpha(self.color[3])
 
             isizeW, isizeH = self.img_.get_size()
-            newrx = self.rect.x - isizeW/2
-            newry = self.rect.y - isizeH/2
-            newRect = pg.Rect(newrx, newry, self.rect.width, self.rect.height)
+            newrx = self.transform.x - isizeW/2
+            newry = self.transform.y - isizeH/2
+            newRect = pg.Rect(newrx, newry, self.transform.w, self.transform.h)
 
-            surface.blit(self.img_, newRect)
+            self.gm.screen.blit(self.img_, newRect)
         else:
-            self.img.set_alpha(self.aplha)
-            surface.blit(self.img, self.rect)
+            self.img.set_alpha(self.color[3])
+            self.gm.screen.blit(self.img, (self.transform.x, self.transform.y, self.transform.w, self.transform.h))
 
-    def draw_clip(self, surface: pg.surface.Surface, rect: pg.rect.Rect):
-        self.img.set_alpha(self.aplha)
-        surface.blit(self.img, (self.rect.x, self.rect.y), area=rect)
-
-class UIText(pg.sprite.Sprite):
-    def __init__(self, text, x, y, size):
-        pg.sprite.Sprite.__init__(self)
+class UIText(BaseCPN):
+    def __init__(self, text, size, r, g, b):
+        super().__init__()
         self.font = pg.font.Font("./font/DotGothic16-Regular.ttf", size)
         self.text = text
-        self.pos = np.array([x, y])
-        self.color = (255, 255, 255)
+        self.transform: Transform = None
+        self.color = (r, g, b)
         self.text_obj = self.font.render(self.text, True, self.color)
+        
+        self.gm = GameManager()
 
-    def update(self):
+    def Start(self):
+        self.transform = self.gameobject.GetComponent(Transform)
+
+    def Update(self):
         self.text_obj = self.font.render(self.text, True, self.color)
+        self.draw(self.gm.screen)
     
     def draw(self, surface: pg.surface.Surface):
-        surface.blit(self.text_obj, (self.pos[0]-self.text_obj.get_size()[0]/2, self.pos[1]-self.text_obj.get_size()[1]/2))
+        surface.blit(self.text_obj, (self.transform.x-self.text_obj.get_size()[0]/2, self.transform.y-self.text_obj.get_size()[1]/2))
 
 class UIButtonClassic(pg.sprite.Sprite):
-    """クラシックなボタン"""
+    """使用を禁止します"""
     def __init__(self, text, rect:pg.rect.Rect, text_pos, font_size, event):
         pg.sprite.Sprite.__init__(self)
         self.rect = rect
@@ -97,7 +111,7 @@ class UIButtonClassic(pg.sprite.Sprite):
 
         self.buttons_image = pg.image.load("./Images/UI/Buttons.png").convert_alpha()
         self.Image = UIImage(self.buttons_image, self.rect)
-        self.Image.aplha = 255
+        self.Image.color[3] = 255
         self.text_obj = UIText(text, (2*self.rect.x+self.rect.width)*self.pos[0], (2*self.rect.y+self.rect.height/3)*self.pos[1], self.font_size)
         self.text_obj.color = (0, 0, 0)
         
@@ -146,7 +160,7 @@ class UIButtonClassic(pg.sprite.Sprite):
         self.text_obj.draw(surface)
 
 class UIButtonCustom(pg.sprite.Sprite):
-    """カスタマイズなボタン"""
+    """使用を禁止します。"""
     def __init__(self, bi, text, rect:pg.rect.Rect, one_height, text_pos, font_size, event):
         pg.sprite.Sprite.__init__(self)
         self.rect = rect
