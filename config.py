@@ -189,7 +189,7 @@ class HitBox(BaseCPN):
 
     def isCollideVector(self, box, vx, vy) -> bool:
         """
-        与えられたbox(HitBox型)と反発後も衝突しているかを判定する
+        与えられたbox(HitBox型)と自身の(vx, vy)進行後が衝突しているかを判定する
         """
         nr = pg.Rect(self.rect.x + vx, self.rect.y + vy, self.rect.w, self.rect.h)
         return nr.colliderect(box)
