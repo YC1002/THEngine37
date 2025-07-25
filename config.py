@@ -303,7 +303,7 @@ class Scene:
         """
         l = []
         for obj in self.gameObjects:
-            if obj.tag == name: l.append(l)
+            if obj.tag == name: l.append(obj)
         return l
 
     def OnLoad(self):
