@@ -1,3 +1,4 @@
+
 import pygame as pg
 import numpy as np
 import math
@@ -10,7 +11,8 @@ class GameManager:
 
     deltaTime: float = 0.0
     base_path: str = None
-    screen: pg.surface = None
+    screen: pg.surface.Surface = None
+    temporarySurface: pg.surface.Surface = None
     fillColor = (0, 0, 0)
     scene = None
 
@@ -186,32 +188,39 @@ class HitBox(BaseCPN):
         """
         return self.rect.colliderect(box.rect)
 
+    def isCollideVector(self, box, vx, vy) -> bool:
+        """
+        与えられたbox(HitBox型)と自身の(vx, vy)進行後が衝突しているかを判定する
+        """
+        nr = pg.Rect(self.rect.x + vx, self.rect.y + vy, self.rect.w, self.rect.h)
+        return nr.colliderect(box)
+
 class Sprite(BaseCPN):
-    def __init__(self, img):
+    def __init__(self, img_s):
         super().__init__()
-        self.img = pg.image.load(os.path.join(GameManager().base_path, img)).convert_alpha()
+        self.src =img_s
+        self.img = None
         self.rimg = None
         self.transform: Transform = None
         self.cam: Transform = None
         self.gm = GameManager()
-        self.screen_center = (self.gm.screen.get_width()/2, self.gm.screen.get_height()/2)
-        self.aspect = 1
+        self.screen_center = (self.gm.temporarySurface.get_width()/2, self.gm.temporarySurface.get_height()/2)
+        
+    def OnLoad(self, GameObject):
+        super().OnLoad(GameObject)
+        if self.img == None:
+            self.img = pg.image.load(os.path.join(GameManager().base_path, self.src)).convert_alpha()
 
     def Start(self):
         self.transform = self.gameobject.GetComponent(Transform)
         self.cam = GameManager().scene.GetObjectRequest(id=0).GetComponent(Transform)
-        self.aspect = self.gm.screen.get_width() / self.gm.screen.get_height()
 
     def Update(self):
-        self.rimg = pg.transform.rotate(pg.transform.scale(self.img, (self.transform.w, self.transform.h)), self.transform.rotate)
-        #new_x = self.transform.x - imW/2
-        #new_y = self.transform.y - imH/2
-        #self.transform.x = new_x
-        #self.transform.y = new_y
-        
-        rx = (self.transform.x*self.aspect - self.transform.w/2 - self.cam.x) + self.screen_center[0]
-        ry = (self.transform.y*self.aspect - self.transform.h/2 - self.cam.y) + self.screen_center[1]
-        GameManager().screen.blit(self.rimg, pg.rect.Rect(rx, ry, self.transform.w*self.aspect, self.transform.h*self.aspect))
+        rx = (self.transform.x - self.transform.w/2 - self.cam.x) + self.screen_center[0]
+        ry = (self.transform.y - self.transform.h/2 - self.cam.y) + self.screen_center[1]
+        if (rx > -self.transform.w and rx < self.gm.temporarySurface.get_width()+self.transform.w) and (ry > -self.transform.h and ry < self.gm.temporarySurface.get_height()+self.transform.h):
+            self.rimg = pg.transform.rotate(pg.transform.scale(self.img, (self.transform.w, self.transform.h)), self.transform.rotate)
+            GameManager().temporarySurface.blit(self.img, (rx, ry, self.transform.w, self.transform.h))
 
 class GameObject:
     def __init__(self) -> None:
@@ -272,12 +281,24 @@ class Tester(BaseCPN):
 
 class Scene:
     def __init__(self):
+        self.__layer_idx = None
+        self.__sorted_layer = None
         self.gameObjects = []
         self.hitboxes = []
+        
+    def Update_layer(self):
+        self.__layer_idx = np.fromiter((obj.layer for obj in self.gameObjects), dtype=np.int32)
+        self.__sorted_layer = np.argsort(self.__layer_idx)
 
     def update(self) -> None:
-        for obj in self.gameObjects: 
-            obj.Update()
+        for idx in self.__sorted_layer: 
+            self.gameObjects[idx].Update()
+            
+    def RegisterToObjectList(self, obj):
+        self.gameObjects.append(obj)
+        for cmp in obj.components:
+            if type(cmp) == HitBox:
+                self.hitboxes.append(cmp)
 
     def GetObjectRequest(self, id) -> GameObject:
         """
@@ -294,17 +315,24 @@ class Scene:
         """
         l = []
         for obj in self.gameObjects:
-            if obj.tag == name: l.append(l)
+            if obj.tag == name: l.append(obj)
         return l
+    
+    def GetMaxID(self) -> int:
+        """
+        現在のシーン内のゲームオブジェクトの最大のIDを取得する
+        """
+        objs = [obj.id for obj in self.gameObjects]
+        return max(objs)
 
     def OnLoad(self):
+        self.Update_layer()
         for obj in self.gameObjects:
             obj.OnLoad(self)
 
     def Start(self):
         for obj in self.gameObjects: 
             obj.Start()
-
-    def draw(self):
-        for obj in self.gameObjects: 
-            obj.draw()
+            
+    def free(self):
+        del self.gameObjects, self.hitboxes

@@ -1,3 +1,4 @@
+
 import pygame as pg
 from pygame.locals import *
 import numpy as np
@@ -37,8 +38,8 @@ class Slider(BaseCPN):
 
         if self.raito < 0.0:
             self.raito = 0.0
-        self.gm.screen.fill(self.background_color, (self.transform.x+self.transform.w*self.raito, self.transform.y, self.transform.w-self.transform.w*self.raito, self.transform.h))
-        self.gm.screen.fill(self.fill_color, (self.transform.x, self.transform.y, self.transform.w*self.raito, self.transform.h))
+        self.gm.temporarySurface.fill(self.background_color, (self.transform.x+self.transform.w*self.raito, self.transform.y, self.transform.w-self.transform.w*self.raito, self.transform.h))
+        self.gm.temporarySurface.fill(self.fill_color, (self.transform.x, self.transform.y, self.transform.w*self.raito, self.transform.h))
 
 class UIImage(BaseCPN):
     def __init__(self, image, r, g, b, a):
@@ -74,10 +75,10 @@ class UIImage(BaseCPN):
             newry = self.transform.y - isizeH/2
             newRect = pg.Rect(newrx, newry, self.transform.w, self.transform.h)
 
-            self.gm.screen.blit(self.img_, newRect)
+            self.gm.temporarySurface.blit(self.img_, newRect)
         else:
             self.img.set_alpha(self.color[3])
-            self.gm.screen.blit(self.img, (self.transform.x, self.transform.y, self.transform.w, self.transform.h))
+            self.gm.temporarySurface.blit(self.img, (self.transform.x, self.transform.y, self.transform.w, self.transform.h))
 
 class UIText(BaseCPN):
     def __init__(self, text, size, r, g, b):
@@ -95,7 +96,7 @@ class UIText(BaseCPN):
 
     def Update(self):
         self.text_obj = self.font.render(self.text, True, self.color)
-        self.draw(self.gm.screen)
+        self.draw(self.gm.temporarySurface)
     
     def draw(self, surface: pg.surface.Surface):
         surface.blit(self.text_obj, (self.transform.x-self.text_obj.get_size()[0]/2, self.transform.y-self.text_obj.get_size()[1]/2))
