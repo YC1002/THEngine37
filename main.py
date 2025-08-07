@@ -1,7 +1,5 @@
-
 import pygame as pg
-from pygame.locals import *
-import sys, os, time
+import sys, os
 
 # ゲーム用モジュール
 from config import GameManager
@@ -41,8 +39,6 @@ def main():
     clock = pg.time.Clock()
 
     while True:
-        st = time.perf_counter() #pg.time.get_ticks()
-
         screen.fill(gm.fillColor)
         gm.temporarySurface.fill(gm.fillColor)
 
@@ -56,17 +52,13 @@ def main():
         
         #イベント処理
         for event in pg.event.get():
-            if event.type == QUIT:
+            if event.type == pg.QUIT:
                 del gm
                 pg.quit()
                 sys.exit()
 
-        clock.tick(fps)
-
-        et = time.perf_counter() #pg.time.get_ticks()
-        delta = et - st
         pg.display.set_caption(f"[FPS={clock.get_fps()}] {config["WINDOW"].get("CAPTION")}")
-        gm.deltaTime = delta
+        gm.deltaTime = clock.tick(fps) / 1000
 
 if __name__ == "__main__":
     main()
