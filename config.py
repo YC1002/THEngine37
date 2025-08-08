@@ -45,7 +45,7 @@ class Transform(BaseCPN):
         self.w: float = 0
         self.h: float = 0
 
-    def LinearInterpolation(a: np.ndarray[float, float], b: np.ndarray[float, float], t: float):
+    def LinearInterpolation(self, a: np.ndarray, b: np.ndarray, t: float):
         """
         aからbへ線形補間を行う
         t: 補完を行う割合
@@ -87,7 +87,7 @@ class Transform(BaseCPN):
         else:
             return False, None
     
-    def SphereLinearComplection(Start: list[float, float], To: list[float, float], t: float):
+    def SphereLinearComplection(self, Start: list[float, float], To: list[float, float], t: float):
         """
         aからbへ球面上線形補完を行う
         t: 補完を行う割合
@@ -110,7 +110,7 @@ class Transform(BaseCPN):
 
         return i
     
-    def LinearComplection(Start: list[float, float], To: list[float, float], t: float):
+    def LinearComplection(self, Start: list[float, float], To: list[float, float], t: float):
         s = np.array([Start[0], Start[1]])
         e = np.array([To[0], To[1]])
 

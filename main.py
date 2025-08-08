@@ -57,7 +57,7 @@ def main():
                 pg.quit()
                 sys.exit()
 
-        pg.display.set_caption(f"[FPS={clock.get_fps()}] {config["WINDOW"].get("CAPTION")}")
+        pg.display.set_caption(f"[FPS={float(int(clock.get_fps()*100))/100}] {config["WINDOW"].get("CAPTION")}")
         gm.deltaTime = clock.tick(fps) / 1000
 
 if __name__ == "__main__":
